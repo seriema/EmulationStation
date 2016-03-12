@@ -1,15 +1,6 @@
 //EmulationStation, a graphical front-end for ROM browsing. Created by Alec "Aloshi" Lofquist.
 //http://www.aloshi.com
 
-#include <SDL.h>
-#include <iostream>
-#include <iomanip>
-#include "Renderer.h"
-#include "views/ViewController.h"
-#include "SystemData.h"
-#include <boost/filesystem.hpp>
-#include "guis/GuiDetectDevice.h"
-#include "guis/GuiMsgBox.h"
 #include "AudioManager.h"
 #include "platform.h"
 #include "Log.h"
@@ -17,11 +8,22 @@
 #include "EmulationStation.h"
 #include "Settings.h"
 #include "ScraperCmdLine.h"
-#include <sstream>
+#include "Renderer.h"
+#include "SystemData.h"
+#include "guis/GuiDetectDevice.h"
+#include "guis/GuiMsgBox.h"
+#include "views/ViewController.h"
+
+#include <SDL.h>
+#include <boost/filesystem.hpp>
 #include <boost/locale.hpp>
+#include <iostream>
+#include <iomanip>
+#include <sstream>
 
 #ifdef WIN32
 #include <Windows.h>
+#include <shellapi.h>
 #endif
 
 namespace fs = boost::filesystem;
@@ -55,7 +57,10 @@ bool parseArgs(int argc, char* argv[], unsigned int* width, unsigned int* height
 		}else if(strcmp(argv[i], "--no-exit") == 0)
 		{
 			Settings::getInstance()->setBool("ShowExit", false);
-		}else if(strcmp(argv[i], "--debug") == 0)
+		}else if(strcmp(argv[i], "--no-splash") == 0)
+        {
+            Settings::getInstance()->setBool("SplashScreen", false);
+        }else if(strcmp(argv[i], "--debug") == 0)
 		{
 			Settings::getInstance()->setBool("Debug", true);
 			Settings::getInstance()->setBool("HideConsole", false);
@@ -91,6 +96,7 @@ bool parseArgs(int argc, char* argv[], unsigned int* width, unsigned int* height
 				"--ignore-gamelist		ignore the gamelist (useful for troubleshooting)\n"
 				"--draw-framerate		display the framerate\n"
 				"--no-exit			don't show the exit option in the menu\n"
+				"--no-splash			don't show the splash screen\n"
 				"--debug				more logging, show console on Windows\n"
 				"--scrape			scrape using command line interface\n"
 				"--windowed			not fullscreen, should be used with --resolution\n"
@@ -107,12 +113,12 @@ bool parseArgs(int argc, char* argv[], unsigned int* width, unsigned int* height
 bool verifyHomeFolderExists()
 {
 	//make sure the config directory exists
-	std::string home = getHomePath();
-	std::string configDir = home + "/.emulationstation";
+	std::string configDir = getConfigDirectory();
+    std::cout << "ConfigPath " << configDir << std::endl;
 	if(!fs::exists(configDir))
 	{
 		std::cout << "Creating config directory \"" << configDir << "\"\n";
-		fs::create_directory(configDir);
+		fs::create_directories(configDir);
 		if(!fs::exists(configDir))
 		{
 			std::cerr << "Config directory could not be created!\n";
@@ -225,8 +231,8 @@ int main(int argc, char* argv[])
 		std::string glExts = (const char*)glGetString(GL_EXTENSIONS);
 		LOG(LogInfo) << "Checking available OpenGL extensions...";
 		LOG(LogInfo) << " ARB_texture_non_power_of_two: " << (glExts.find("ARB_texture_non_power_of_two") != std::string::npos ? "ok" : "MISSING");
-
-		window.renderLoadingScreen();
+        if(Settings::getInstance()->getBool("SplashScreen"))
+            window.renderLoadingScreen();
 	}
 
 	const char* errorMsg = NULL;
@@ -338,3 +344,26 @@ int main(int argc, char* argv[])
 
 	return 0;
 }
+
+#ifdef WIN32
+int CALLBACK WinMain(
+	_In_ HINSTANCE hInstance,
+	_In_ HINSTANCE hPrevInstance,
+	_In_ LPSTR     lpCmdLine,
+	_In_ int       nCmdShow
+	)
+{
+	/* Just convert command-line arguments to UTF-8 and call main() */
+	int argc, i;
+	LPWSTR *argvW = CommandLineToArgvW(GetCommandLineW(), &argc);
+	char **argv = new char *[argc];
+	for (i = 0; i < argc; i++)
+	{
+		int len = WideCharToMultiByte(CP_UTF8, 0, argvW[i], -1, NULL, 0, NULL, NULL);
+		argv[i] = new char[len];
+		WideCharToMultiByte(CP_UTF8, 0, argvW[i], -1, argv[i], len, NULL, NULL);
+	}
+	main(argc, argv);
+}
+
+#endif /* WIN32 */

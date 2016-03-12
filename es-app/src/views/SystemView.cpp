@@ -1,13 +1,15 @@
 #include "views/SystemView.h"
+
+#include "views/ViewController.h"
+
+#include "animations/LambdaAnimation.h"
+
 #include "SystemData.h"
 #include "Renderer.h"
 #include "Log.h"
-#include "Window.h"
-#include "views/ViewController.h"
-#include "animations/LambdaAnimation.h"
-#include "SystemData.h"
 #include "Settings.h"
 #include "Util.h"
+#include "Window.h"
 
 #define SELECTED_SCALE 1.5f
 #define LOGO_PADDING ((logoSize().x() * (SELECTED_SCALE - 1)/2) + (mSize.x() * 0.06f))
@@ -159,11 +161,11 @@ void SystemView::onCursorChanged(const CursorState& state)
 	// it's one of these...
 
 	float endPos = target; // directly
-	float dist = abs(endPos - startPos);
+	float dist = std::abs(endPos - startPos);
 	
-	if(abs(target + posMax - startPos) < dist)
+	if(std::abs(target + posMax - startPos) < dist)
 		endPos = target + posMax; // loop around the end (0 -> max)
-	if(abs(target - posMax - startPos) < dist)
+	if(std::abs(target - posMax - startPos) < dist)
 		endPos = target - posMax; // loop around the start (max - 1 -> -1)
 
 	

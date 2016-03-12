@@ -1,13 +1,15 @@
 #include "guis/GuiDetectDevice.h"
+
 #include "Window.h"
 #include "Renderer.h"
+#include "Util.h"
 #include "resources/Font.h"
 #include "guis/GuiInputConfig.h"
 #include "components/TextComponent.h"
+
 #include <iostream>
 #include <string>
 #include <sstream>
-#include "Util.h"
 #include <boost/filesystem.hpp>
 #include <boost/locale.hpp>
 
@@ -17,7 +19,7 @@ using namespace Eigen;
 
 namespace fs = boost::filesystem;
 
-GuiDetectDevice::GuiDetectDevice(Window* window, bool firstRun, const std::function<void()>& doneCallback) : GuiComponent(window), mFirstRun(firstRun), 
+GuiDetectDevice::GuiDetectDevice(Window* window, bool firstRun, const std::function<void()>& doneCallback) : GuiComponent(window), mFirstRun(firstRun),
 	mBackground(window, ":/frame.png"), mGrid(window, Vector2i(1, 5))
 {
 	mHoldingConfig = NULL;

@@ -1,11 +1,13 @@
 #include "InputManager.h"
+
 #include "InputConfig.h"
 #include "Settings.h"
 #include "Window.h"
 #include "Log.h"
+#include "platform.h"
+
 #include "pugixml/pugixml.hpp"
 #include <boost/filesystem.hpp>
-#include "platform.h"
 
 #define KEYBOARD_GUID_STRING "-1"
 
@@ -394,8 +396,8 @@ void InputManager::doOnFinish()
 
 std::string InputManager::getConfigPath()
 {
-	std::string path = getHomePath();
-	path += "/.emulationstation/es_input.cfg";
+	std::string path = getConfigDirectory();
+	path += "/es_input.cfg";
 	return path;
 }
 
